@@ -8,18 +8,10 @@ import { clerkWebHooks } from "./controllers/webhooks.js";
 const app = express();
 
 // connect to database
-await connectDB();
+connectDB();
 
 // middleware
 app.use(cors());
-
-app.use(function (req, res, next) {
-  if (req.originalUrl && req.originalUrl.split("/").pop() === "favicon.ico") {
-    return res.sendStatus(204);
-  }
-
-  next();
-});
 
 // Routes
 app.get("/", (req, res) => {

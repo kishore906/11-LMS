@@ -14,6 +14,10 @@ await connectDB();
 app.use(cors());
 
 // Routes
+app.get("/favicon.ico", function (req, res) {
+  res.status(204);
+  res.end();
+});
 app.get("/", (req, res) => {
   res.send("api working..");
 });

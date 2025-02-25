@@ -1,11 +1,14 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import mongoose from "mongoose";
+import connectDB from "./config/mongodb.js";
 import { clerkWebHooks } from "./controllers/webhooks.js";
 
 // initializing express
 const app = express();
+
+// connect to database
+connectDB();
 
 // middleware
 app.use(cors());
@@ -19,12 +22,6 @@ app.post("/clerk", express.json(), clerkWebHooks);
 // port
 const PORT = process.env.PORT || 5000;
 
-mongoose
-  .connect(process.env.MONGODB_URL)
-  .then(() => {
-    console.log("Database Connected");
-    app.listen(PORT, () => {
-      console.log(`Server is running on PORT ${PORT}`);
-    });
-  })
-  .catch((err) => console.log(err));
+app.listen(PORT, () => {
+  console.log(`Server is running on PORT ${PORT}`);
+});

@@ -11,7 +11,7 @@ const app = express();
 app.use(cors());
 
 // connect to database
-await connectDB();
+connectDB();
 
 // Routes
 app.get("/", (req, res) => {

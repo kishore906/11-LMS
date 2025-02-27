@@ -1,15 +1,12 @@
 import { Link } from "react-router-dom";
 import { assets } from "../../assets/assets";
-import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
 import { useContext } from "react";
 import { AppContext } from "../../context/AppContext";
+import UserButton from "./UserButton";
 
 const Navbar = () => {
   const isCourseListPage = location.pathname.includes("/course-list");
-  const { navigate, isEducator } = useContext(AppContext);
-
-  const { openSignIn } = useClerk();
-  const { user } = useUser();
+  const { navigate, user } = useContext(AppContext);
 
   return (
     <div
@@ -28,7 +25,9 @@ const Navbar = () => {
           {user && (
             <>
               <button onClick={() => navigate("/educator")}>
-                {isEducator ? "Educator Dashboard" : "Become Educator"}
+                {user.role === "educator"
+                  ? "Educator Dashboard"
+                  : "Become Educator"}
               </button>
               <Link to="/my-enrollments">My enrollments</Link>
             </>
@@ -38,7 +37,7 @@ const Navbar = () => {
           <UserButton />
         ) : (
           <button
-            onClick={() => openSignIn()}
+            onClick={() => navigate("/register")}
             className="bg-blue-600 text-white px-5 py-2 rounded-full"
           >
             Create Account
@@ -52,7 +51,9 @@ const Navbar = () => {
           {user && (
             <>
               <button onClick={() => navigate("/educator")}>
-                {isEducator ? "Educator Dashboard" : "Become Educator"}
+                {user.role === "educator"
+                  ? "Educator Dashboard"
+                  : "Become Educator"}
               </button>
               <Link to="/my-enrollments">My enrollments</Link>
             </>
@@ -61,7 +62,7 @@ const Navbar = () => {
         {user ? (
           <UserButton />
         ) : (
-          <button onClick={() => openSignIn()}>
+          <button onClick={() => navigate("/register")}>
             <img src={assets.user_icon} alt="user_icon" />
           </button>
         )}

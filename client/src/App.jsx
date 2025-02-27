@@ -11,17 +11,28 @@ import AddCourse from "./pages/educator/AddCourse";
 import MyCourses from "./pages/educator/MyCourses";
 import StudentsEnrolled from "./pages/educator/StudentsEnrolled";
 import Navbar from "./components/student/Navbar";
+import Register from "./pages/student/Register";
+import Login from "./pages/student/Login";
+import UpdateProfile from "./pages/student/UpdateProfile";
+import UpdatePassword from "./pages/student/UpdatePassword";
 import "quill/dist/quill.snow.css";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const isEducatorRoute = useMatch("/educator/*");
 
   return (
     <div className="text-default min-h-screen bg-white">
+      <ToastContainer position="top-right" theme="dark" />
       {!isEducatorRoute && <Navbar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/updateProfile" element={<UpdateProfile />} />
+        <Route path="/updatePassword" element={<UpdatePassword />} />
         <Route path="/course-list" element={<CourseList />} />
         <Route path="/course-list/:input" element={<CourseList />} />
         <Route path="/course/:id" element={<CourseDetails />} />

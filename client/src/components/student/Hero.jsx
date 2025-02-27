@@ -26,6 +26,7 @@ const Hero = () => {
       </p>
 
       <SearchBar />
+      {undefined && <p>Hello</p>}
     </div>
   );
 };

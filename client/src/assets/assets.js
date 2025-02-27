@@ -42,6 +42,7 @@ import profile_img2 from "./profile_img2.png";
 import profile_img3 from "./profile_img3.png";
 import lesson_icon from "./lesson_icon.svg";
 import skillforge_logo from "./skillforge_logo.png";
+import default_avatar from "./default_avatar.jpg";
 
 export const assets = {
   search_icon,
@@ -88,6 +89,7 @@ export const assets = {
   blue_tick_icon,
   lesson_icon,
   skillforge_logo,
+  default_avatar,
 };
 
 export const dummyEducatorData = {

@@ -10,8 +10,13 @@ export const AppContextProvider = ({ children }) => {
   const currency = import.meta.env.VITE_CURRENCY;
   const navigate = useNavigate();
 
+  const [user, setUser] = useState(
+    localStorage.getItem("user")
+      ? JSON.parse(localStorage.getItem("user"))
+      : null
+  );
   const [allCourses, setAllCourses] = useState([]);
-  const [isEducator, setIsEducator] = useState(true);
+
   const [enrolledCourses, setEnrolledCourses] = useState([]);
 
   // Fetch all courses
@@ -71,11 +76,11 @@ export const AppContextProvider = ({ children }) => {
 
   const value = {
     currency,
+    user,
+    setUser,
     allCourses,
     navigate,
     calculateAvgRating,
-    isEducator,
-    setIsEducator,
     calculateChapterTime,
     calculateTotalCourseDuration,
     calculateNoOfLectures,

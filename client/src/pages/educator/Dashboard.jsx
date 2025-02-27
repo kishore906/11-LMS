@@ -30,7 +30,7 @@ const Dashboard = () => {
               <p className="text-base text-gray-500">Total Enrollments</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 shadow-card border border-blue-500 p-4 w-56 rounded-md">
+          <div className="flex items-center gap-3 shadow-custom-card border border-blue-500 p-4 w-56 rounded-md">
             <img src={assets.appointments_icon} alt="patient_icon" />
             <div>
               <p className="text-2xl font-medium text-gray-600">
@@ -39,7 +39,7 @@ const Dashboard = () => {
               <p className="text-base text-gray-500">Total Courses</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 shadow-card border border-blue-500 p-4 w-56 rounded-md">
+          <div className="flex items-center gap-3 shadow-custom-card border border-blue-500 p-4 w-56 rounded-md">
             <img src={assets.earning_icon} alt="patient_icon" />
             <div>
               <p className="text-2xl font-medium text-gray-600">

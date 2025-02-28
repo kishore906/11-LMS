@@ -4,6 +4,10 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/mongodb.js";
 import userRoutes from "./routes/userRoutes.js";
+import eductarRoutes from "./routes/educatorRoutes.js";
+import courseRoutes from "./routes/courseRoutes.js";
+import connectCloudinary from "./config/cloudinary.js";
+import { stripeWebhook } from "./controllers/webhooks.js";
 //import { clerkWebHooks } from "./controllers/webhooks.js";
 
 dotenv.config();
@@ -13,6 +17,9 @@ const app = express();
 
 // connect to database
 await connectDB();
+
+// connect to cloudinary
+await connectCloudinary();
 
 // // Use middleware to parse incoming JSON requests
 app.use(express.json());
@@ -40,3 +47,10 @@ app.listen(PORT, () => {
 // Routes
 //app.post("/clerk", express.json(), clerkWebHooks);
 app.use("/api", userRoutes);
+app.use("/api/educator", eductarRoutes);
+app.use("/api/course", courseRoutes);
+app.post(
+  "/api/stripe",
+  express.raw({ type: "application/json*" }),
+  stripeWebhook
+);

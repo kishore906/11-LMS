@@ -1,12 +1,41 @@
 import { Link } from "react-router-dom";
 import { assets } from "../../assets/assets";
 import { useContext } from "react";
+import { toast } from "react-toastify";
 import { AppContext } from "../../context/AppContext";
 import UserButton from "./UserButton";
 
 const Navbar = () => {
   const isCourseListPage = location.pathname.includes("/course-list");
-  const { navigate, user } = useContext(AppContext);
+  const { navigate, user, setUser } = useContext(AppContext);
+
+  const handleRole = async () => {
+    if (user?.role === "educator") {
+      navigate("/educator");
+    } else if (user?.role === "user") {
+      try {
+        const response = await fetch("http://localhost:5000/api/updateRole", {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await response.json();
+
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+          setUser(data.user);
+          toast.success("You are an Educator now, add courses you want !!");
+        } else if (data.error) {
+          toast.error(data.error);
+        }
+      } catch (err) {
+        console.log(err);
+        toast.error("Server error please try later !!");
+      }
+    }
+  };
 
   return (
     <div
@@ -24,7 +53,7 @@ const Navbar = () => {
         <div className="flex items-center gap-5">
           {user && (
             <>
-              <button onClick={() => navigate("/educator")}>
+              <button onClick={handleRole}>
                 {user.role === "educator"
                   ? "Educator Dashboard"
                   : "Become Educator"}
@@ -50,7 +79,7 @@ const Navbar = () => {
         <div className="flex items-center gap-1 sm:gap-2 max-sm:text-xs">
           {user && (
             <>
-              <button onClick={() => navigate("/educator")}>
+              <button onClick={handleRole}>
                 {user.role === "educator"
                   ? "Educator Dashboard"
                   : "Become Educator"}

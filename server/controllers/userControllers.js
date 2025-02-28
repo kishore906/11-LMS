@@ -1,6 +1,10 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Purchase from "../models/Purchase.js";
+import Stripe from "stripe";
+import Course from "../models/Course.js";
+import CourseProgress from "../models/CourseProgress.js";
 
 // register: /api/register
 const register = async (req, res) => {
@@ -17,7 +21,12 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const user = await User.create({ name, email, password: hashedPassword });
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      imageUrl: "",
+    });
 
     res.status(201).json({ message: "User created Successfully" });
   } catch (err) {
@@ -154,4 +163,212 @@ const updatePassword = async (req, res) => {
   }
 };
 
-export { register, login, logout, getUser, updateProfile, updatePassword };
+// updateRole: /api/updateRole
+const updateRole = async (req, res) => {
+  const { _id } = req.user;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      { _id },
+      { role: "educator" },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res
+      .status(200)
+      .json({ user: { _id: user._id, name: user.name, role: user.role } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// user enrolled courses with lecture links
+const userEnrolledCourses = async (req, res) => {
+  try {
+    const { _id } = req.user;
+    const user = await User.findById(_id).populate("enrolledCourses");
+    res
+      .status(200)
+      .json({ success: true, enrolledCourses: user.enrolledCourses });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// purchase course by user
+const purchaseCourse = async (req, res) => {
+  try {
+    const { courseId } = req.body;
+    const { origin } = req.headers;
+    const { _id } = req.user;
+    const user = await User.findById(_id);
+    const course = await Course.findById(courseId);
+
+    if (!user || !course) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Data not found.." });
+    }
+
+    // creating purchase data
+    const purchaseData = {
+      courseId: course._id,
+      userId: _id,
+      amount: (
+        course.coursePrice -
+        (course.discount * course.coursePrice) / 100
+      ).toFixed(2),
+    };
+
+    // storing purchase data in db
+    const newPurchase = await Purchase.create(purchaseData);
+
+    // initializing stripe payment gateway
+    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const currency = process.env.CURRENCY.toLowerCase();
+
+    // creating line items for stripe payment
+    const line_items = [
+      {
+        price_data: {
+          currency,
+          product_data: {
+            name: course.courseTitle,
+          },
+          unit_amount: Math.floor(newPurchase.amount) * 100, // in cents
+        },
+        quantity: 1,
+      },
+    ];
+
+    // payment session
+    const session = await stripeInstance.checkout.sessions.create({
+      success_url: `${origin}/loading/my-enrollments`,
+      cancel_url: `${origin}/`,
+      line_items: line_items,
+      mode: "payment",
+      metadata: {
+        purchaseId: newPurchase._id.toString(),
+      },
+    });
+
+    res.status(200).json({ success: true, session_url: session.url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// update user course progress
+const updateUserCourseProgress = async (req, res) => {
+  try {
+    const { _id } = req.user;
+    const { courseId, lectureId } = req.body;
+    const progressData = await CourseProgress.findOne({ _id, courseId });
+
+    if (progressData) {
+      if (progressData.lectureCompleted.includes(lectureId)) {
+        return res
+          .status(200)
+          .json({ success: true, message: "Lecture already completed" });
+      }
+
+      progressData.lectureCompleted.push(lectureId);
+      await progressData.save();
+    } else {
+      await CourseProgress.create({
+        _id,
+        courseId,
+        lectureCompleted: [lectureId],
+      });
+    }
+
+    res.status(200).json({ success: true, message: "Progress updated !!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// get user course progress
+const getUserCourseProgress = async (req, res) => {
+  try {
+    const { _id } = req.user;
+    const { courseId } = req.body;
+    const progressData = await CourseProgress.findOne({ _id, courseId });
+    res.status(200).json({ success: true, progressData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// add user rating to course
+const addUserRating = async (req, res) => {
+  const { _id } = req.user;
+  const { courseId, rating } = req.body;
+
+  if (!courseId || !_id || !rating || rating < 1 || rating > 5) {
+    return res.status(400).json({ message: "Invalid Details" });
+  }
+
+  try {
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found.." });
+    }
+
+    const user = await User.findById(_id);
+
+    if (!user || !user.enrolledCourses.includes(courseId)) {
+      return res
+        .status(400)
+        .json({ message: "User didn't purchase this course !!" });
+    }
+
+    const existingRatingIndex = course.courseRatings.findIndex(
+      (r) => r.userId === _id
+    );
+
+    // if rating is already available then update rating
+    if (existingRatingIndex > -1) {
+      course.courseRatings[existingRatingIndex].rating = rating;
+    } else {
+      course.courseRatings.push({ _id, rating });
+    }
+
+    await course.save();
+
+    res.status(200).json({ message: "Rating added" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export {
+  register,
+  login,
+  logout,
+  getUser,
+  updateProfile,
+  updatePassword,
+  updateRole,
+  userEnrolledCourses,
+  purchaseCourse,
+  updateUserCourseProgress,
+  getUserCourseProgress,
+  addUserRating,
+};
+
+/*
+In Stripe, the unit_amount is multiplied by 100 because Stripe's API expects the amount to be in the smallest currency unit (e.g., cents for USD, pence for GBP).
+
+For example:
+
+If you're charging $10.00, you would set the unit_amount to 1000 (because $10.00 is 1000 cents).
+For a price of €20.50, you would set unit_amount to 2050 (because €20.50 is 2050 cents).
+*/

@@ -36,7 +36,7 @@ const UserButton = () => {
       />
 
       {isDropdownOpen && (
-        <div className="flex flex-col justify-center gap-3 absolute w-[180px] top-12 right-1 shadow-custom-card p-5">
+        <div className="flex flex-col justify-center gap-3 absolute w-[180px] top-12 right-1 shadow-custom-card p-5 z-20">
           <Link
             to="/updateProfile"
             onClick={() => setIsDropdownOpen((prev) => !prev)}

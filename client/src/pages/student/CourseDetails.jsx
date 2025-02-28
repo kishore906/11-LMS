@@ -4,6 +4,7 @@ import { AppContext } from "../../context/AppContext";
 import Loading from "../../components/student/Loading";
 import { assets } from "../../assets/assets";
 import humanizeDuration from "humanize-duration";
+import { toast } from "react-toastify";
 import Footer from "../../components/student/Footer";
 import YouTube from "react-youtube";
 
@@ -14,7 +15,7 @@ const CourseDetails = () => {
   const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false);
   const [playerData, setPlayerData] = useState(null);
   const {
-    allCourses,
+    user,
     calculateAvgRating,
     calculateChapterTime,
     calculateTotalCourseDuration,
@@ -23,18 +24,96 @@ const CourseDetails = () => {
   } = useContext(AppContext);
 
   const fetchCourse = useCallback(async () => {
-    const course = allCourses.find((course) => course._id === id);
-    setCourseData(course);
-  }, [allCourses, id]);
+    try {
+      const response = await fetch(`http://localhost:5000/api/course/${id}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCourseData(data.course);
+      } else {
+        toast.error(data.error);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Server error please try later..");
+    }
+  }, [id]);
 
   const toggleSection = (index) => {
     setOpenSections((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
+  const enrollCourse = async () => {
+    try {
+      if (!user) {
+        return toast.warn("Login to enroll");
+      }
+
+      if (isAlreadyEnrolled) {
+        return toast.warn("Already enrolled");
+      }
+
+      const response = await fetch("http://localhost:5000/api/purchase", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ courseId: courseData._id }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const { session_url } = data;
+        window.location.replace(session_url);
+      } else {
+        toast.error(data.error);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Server error please try later..");
+    }
+  };
+
   useEffect(() => {
-    //console.log("effect called");
     fetchCourse();
-  }, [allCourses, fetchCourse]);
+  }, [fetchCourse]);
+
+  useEffect(() => {
+    try {
+      if (user && courseData) {
+        async function getUserData() {
+          const res = await fetch(
+            `http://localhost:5000/api/user/${user?._id}`,
+            {
+              method: "GET",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          const data = await res.json();
+          setIsAlreadyEnrolled(
+            data.user.enrolledCourses.includes(courseData._id)
+          );
+        }
+
+        getUserData();
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Server error please try later..");
+    }
+  }, [user, courseData]);
 
   if (!courseData) return <Loading />;
 
@@ -85,7 +164,9 @@ const CourseDetails = () => {
 
           <p className="text-sm">
             Course by{" "}
-            <span className="text-blue-600 underline">DummyEducator</span>
+            <span className="text-blue-600 underline">
+              {courseData.educator.name}
+            </span>
           </p>
 
           {/* course content */}
@@ -240,7 +321,10 @@ const CourseDetails = () => {
               </div>
             </div>
 
-            <button className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium">
+            <button
+              className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium"
+              onClick={enrollCourse}
+            >
               {isAlreadyEnrolled ? "Already Enrolled" : "Enroll Now"}
             </button>
 

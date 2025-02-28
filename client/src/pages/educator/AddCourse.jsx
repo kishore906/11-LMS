@@ -1,6 +1,7 @@
 import uniqid from "uniqid";
 import Quill from "quill";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
 import { assets } from "../../assets/assets";
 
 const AddCourse = () => {
@@ -95,7 +96,60 @@ const AddCourse = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    try {
+      e.preventDefault();
+
+      if (!image) {
+        toast.error("Thumbnail or Image not Selected");
+      }
+
+      // creating course obj
+      const courseData = {
+        courseTitle,
+        courseDescription: quillRef.current.root.innerHTML,
+        coursePrice: Number(coursePrice),
+        discount: Number(discount),
+        courseContent: chapters,
+      };
+
+      // creating form-data to send it to backend api
+      const formData = new FormData();
+      formData.append("courseData", JSON.stringify(courseData));
+      formData.append("image", image);
+
+      // Convert FormData to a plain object
+      // const formDataObject = {};
+      // formData.forEach((value, name) => {
+      //   formDataObject[name] = value;
+      // });
+
+      // console.log(formDataObject);
+
+      const response = await fetch(
+        "http://localhost:5000/api/educator/addcourse",
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        }
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(data.message);
+        setCourseTitle("");
+        setCoursePrice(0);
+        setDiscount(0);
+        setImage(null);
+        setChapters([]);
+        quillRef.current.root.innerHTML = "";
+      } else {
+        toast.error(data.error);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Server error please try later!!");
+    }
   };
 
   useEffect(() => {
@@ -106,7 +160,7 @@ const AddCourse = () => {
   }, []);
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0">
+    <div className="h-screen overflow-auto flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0">
       <form
         className="flex flex-col gap-4 max-w-md w-full text-gray-500"
         onSubmit={handleSubmit}

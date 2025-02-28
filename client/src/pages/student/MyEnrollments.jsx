@@ -1,28 +1,62 @@
-import { useContext, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { AppContext } from "../../context/AppContext";
 import { Line } from "rc-progress";
+import { toast } from "react-toastify";
 import Footer from "../../components/student/Footer";
 
 const MyEnrollments = () => {
-  const { enrolledCourses, calculateTotalCourseDuration, navigate } =
-    useContext(AppContext);
+  const {
+    enrolledCourses,
+    calculateTotalCourseDuration,
+    calculateNoOfLectures,
+    navigate,
+    user,
+    fetchUserEnrolledCourses,
+  } = useContext(AppContext);
 
-  const [progressArr, setProgressArr] = useState([
-    { lectureCompleted: 2, totalLectures: 4 },
-    { lectureCompleted: 1, totalLectures: 5 },
-    { lectureCompleted: 3, totalLectures: 6 },
-    { lectureCompleted: 4, totalLectures: 4 },
-    { lectureCompleted: 0, totalLectures: 3 },
-    { lectureCompleted: 5, totalLectures: 7 },
-    { lectureCompleted: 6, totalLectures: 8 },
-    { lectureCompleted: 2, totalLectures: 6 },
-    { lectureCompleted: 4, totalLectures: 10 },
-    { lectureCompleted: 3, totalLectures: 5 },
-    { lectureCompleted: 7, totalLectures: 7 },
-    { lectureCompleted: 1, totalLectures: 4 },
-    { lectureCompleted: 0, totalLectures: 2 },
-    { lectureCompleted: 5, totalLectures: 5 },
-  ]);
+  const [progressArr, setProgressArr] = useState([]);
+
+  const getCourseProgress = useCallback(async () => {
+    try {
+      const tempProgressArray = await Promise.all(
+        enrolledCourses.map(async (course) => {
+          const res = await fetch(
+            "http://localhost:5000/api/get-course-progress",
+            {
+              method: "POST",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ courseId: course._id }),
+            }
+          );
+          const data = await res.json();
+          let totalLectures = calculateNoOfLectures(course);
+          const lectureCompleted = data.progressData
+            ? data.progressData.lectureCompleted.length
+            : 0;
+          return { totalLectures, lectureCompleted };
+        })
+      );
+      setProgressArr(tempProgressArray);
+    } catch (err) {
+      console.log(err);
+      toast.error("Server error please try later..");
+    }
+  }, [calculateNoOfLectures, enrolledCourses]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserEnrolledCourses();
+    }
+  }, [user, fetchUserEnrolledCourses]);
+
+  useEffect(() => {
+    if (enrolledCourses.length > 0) {
+      getCourseProgress();
+    }
+  }, [user, enrolledCourses, getCourseProgress]);
 
   return (
     <>

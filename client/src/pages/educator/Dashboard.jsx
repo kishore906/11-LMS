@@ -1,19 +1,40 @@
 import { useContext, useEffect, useState } from "react";
-import { assets, dummyDashboardData } from "../../assets/assets";
+import { assets } from "../../assets/assets";
 import { AppContext } from "../../context/AppContext";
+import { toast } from "react-toastify";
 import Loading from "../../components/student/Loading";
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
-  const { currency } = useContext(AppContext);
+  const { currency, user } = useContext(AppContext);
 
   const fetchDashboardData = async () => {
-    setDashboardData(dummyDashboardData);
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/educator/dashboard",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        setDashboardData(data.dashboardData);
+      } else {
+        toast.error(data.error);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Server error please try later!!");
+    }
   };
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (user?.role === "educator") {
+      fetchDashboardData();
+    }
+  }, [user]);
 
   if (!dashboardData) return <Loading />;
 
@@ -72,7 +93,7 @@ const Dashboard = () => {
                     </td>
                     <td className="md:px-4 px-2 py-3 flex items-center space-x-3">
                       <img
-                        src={item.student.imageUrl}
+                        src={item.student.imageUrl || assets.default_avatar}
                         alt="profile"
                         className="w-9 h-9 rounded-full"
                       />

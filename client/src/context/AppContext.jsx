@@ -1,8 +1,8 @@
 import { createContext, useEffect } from "react";
 import { useState } from "react";
-import { dummyCourses } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 import humanizeDuration from "humanize-duration";
+import { toast } from "react-toastify";
 
 export const AppContext = createContext();
 
@@ -16,12 +16,32 @@ export const AppContextProvider = ({ children }) => {
       : null
   );
   const [allCourses, setAllCourses] = useState([]);
-
   const [enrolledCourses, setEnrolledCourses] = useState([]);
 
   // Fetch all courses
   const fetchAllCourses = async () => {
-    setAllCourses(dummyCourses);
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/course/getAllCourses",
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        setAllCourses(data.courses);
+      } else {
+        toast.error(data.error);
+      }
+    } catch (err) {
+      console.log(err.message);
+      toast.error("Server error please try later !!");
+    }
   };
 
   // function to calculate average rating of course
@@ -66,13 +86,40 @@ export const AppContextProvider = ({ children }) => {
 
   // function to fetch user enrolled courses
   const fetchUserEnrolledCourses = async () => {
-    setEnrolledCourses(dummyCourses);
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/enrolledCourses",
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setEnrolledCourses(data.enrolledCourses.reverse());
+      } else {
+        toast.error(data.error);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Server error please try later!!");
+    }
   };
 
   useEffect(() => {
     fetchAllCourses();
-    fetchUserEnrolledCourses();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserEnrolledCourses();
+    }
+  }, [user]);
 
   const value = {
     currency,

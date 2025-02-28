@@ -187,6 +187,7 @@ const updateRole = async (req, res) => {
 };
 
 // user enrolled courses with lecture links
+// endpoint: /api/enrolledCourses
 const userEnrolledCourses = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -200,6 +201,7 @@ const userEnrolledCourses = async (req, res) => {
 };
 
 // purchase course by user
+// endpoint: /api/purchase
 const purchaseCourse = async (req, res) => {
   try {
     const { courseId } = req.body;
@@ -263,6 +265,7 @@ const purchaseCourse = async (req, res) => {
 };
 
 // update user course progress
+// endpoint: /api/update-course-progress
 const updateUserCourseProgress = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -270,6 +273,7 @@ const updateUserCourseProgress = async (req, res) => {
     const progressData = await CourseProgress.findOne({ _id, courseId });
 
     if (progressData) {
+      console.log(progressData.lectureCompleted.includes(lectureId));
       if (progressData.lectureCompleted.includes(lectureId)) {
         return res
           .status(200)
@@ -280,7 +284,7 @@ const updateUserCourseProgress = async (req, res) => {
       await progressData.save();
     } else {
       await CourseProgress.create({
-        _id,
+        userId: _id,
         courseId,
         lectureCompleted: [lectureId],
       });
@@ -293,11 +297,15 @@ const updateUserCourseProgress = async (req, res) => {
 };
 
 // get user course progress
+// endpoint: /api/get-course-progress
 const getUserCourseProgress = async (req, res) => {
   try {
     const { _id } = req.user;
     const { courseId } = req.body;
-    const progressData = await CourseProgress.findOne({ _id, courseId });
+    const progressData = await CourseProgress.findOne({
+      userId: _id,
+      courseId,
+    });
     res.status(200).json({ success: true, progressData });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -305,6 +313,7 @@ const getUserCourseProgress = async (req, res) => {
 };
 
 // add user rating to course
+// endpoint: /api/add-rating
 const addUserRating = async (req, res) => {
   const { _id } = req.user;
   const { courseId, rating } = req.body;
@@ -338,12 +347,12 @@ const addUserRating = async (req, res) => {
     if (existingRatingIndex > -1) {
       course.courseRatings[existingRatingIndex].rating = rating;
     } else {
-      course.courseRatings.push({ _id, rating });
+      course.courseRatings.push({ userId: _id, rating });
     }
 
     await course.save();
 
-    res.status(200).json({ message: "Rating added" });
+    res.status(200).json({ success: true, message: "Rating added" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

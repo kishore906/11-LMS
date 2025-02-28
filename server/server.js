@@ -22,7 +22,14 @@ await connectDB();
 await connectCloudinary();
 
 // // Use middleware to parse incoming JSON requests
-app.use(express.json());
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req, res, buf) => {
+      req.rawBody = buf.toString();
+    },
+  })
+);
 
 // Middleware to parse cookies
 app.use(cookieParser());

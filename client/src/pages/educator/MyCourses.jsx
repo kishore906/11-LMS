@@ -1,18 +1,39 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { AppContext } from "../../context/AppContext";
+import { toast } from "react-toastify";
 import Loading from "../../components/student/Loading";
 
 const MyCourses = () => {
-  const { currency, allCourses } = useContext(AppContext);
+  const { currency, user } = useContext(AppContext);
   const [courses, setCourses] = useState(null);
 
   const fetchEducatorCourses = useCallback(async () => {
-    setCourses(allCourses);
-  }, [allCourses]);
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/educator/getCourses",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        setCourses(data.courses);
+      } else {
+        toast.error(data.error);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Server error please try later!!");
+    }
+  }, []);
 
   useEffect(() => {
-    fetchEducatorCourses();
-  }, [allCourses, fetchEducatorCourses]);
+    if (user?.role === "educator") {
+      fetchEducatorCourses();
+    }
+  }, [fetchEducatorCourses, user]);
 
   if (!courses) return <Loading />;
 

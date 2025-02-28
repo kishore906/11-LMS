@@ -1,17 +1,40 @@
-import { useState, useEffect } from "react";
-import { dummyStudentEnrolled } from "../../assets/assets";
+import { useState, useEffect, useContext } from "react";
+import { toast } from "react-toastify";
 import Loading from "../../components/student/Loading";
+import { AppContext } from "../../context/AppContext";
+import { assets } from "../../assets/assets.js";
 
 const StudentsEnrolled = () => {
+  const { user } = useContext(AppContext);
   const [enrolledStudents, setEnrolledStudents] = useState(null);
 
   const fetchEnrolledStudents = async () => {
-    setEnrolledStudents(dummyStudentEnrolled);
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/educator/enrolledStudents",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        setEnrolledStudents(data.enrolledStudents.reverse());
+      } else {
+        toast.error(data.error);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Server error please try later!!");
+    }
   };
 
   useEffect(() => {
-    fetchEnrolledStudents();
-  }, []);
+    if (user?.role === "educator") {
+      fetchEnrolledStudents();
+    }
+  }, [user]);
 
   if (!enrolledStudents) return <Loading />;
 
@@ -39,7 +62,7 @@ const StudentsEnrolled = () => {
                 </td>
                 <td className="md:px-4 px-2 py-3 flex items-center space-x-3">
                   <img
-                    src={item.student.imageUrl}
+                    src={item.student.imageUrl || assets.default_avatar}
                     alt="profile_img"
                     className="w-9 h-9 rounded-full"
                   />

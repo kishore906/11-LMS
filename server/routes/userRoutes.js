@@ -32,7 +32,7 @@ router.post(
   isAuthenticated,
   updateUserCourseProgress
 );
-router.get("/get-course-progress", isAuthenticated, getUserCourseProgress);
+router.post("/get-course-progress", isAuthenticated, getUserCourseProgress);
 router.post("/add-rating", isAuthenticated, addUserRating);
 
 router.post("/purchase", isAuthenticated, purchaseCourse);

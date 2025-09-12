@@ -6,8 +6,8 @@ import { assets } from "../../assets/assets";
 
 const AddCourse = () => {
   // Use a ref to access the quill instance directly quill- text editor
-  const quillRef = useRef(null);
-  const editorRef = useRef(null);
+  const quillRef = useRef(null); // Ref to store the Quill instance
+  const editorRef = useRef(null); // State to hold editor content
 
   const [courseTitle, setCourseTitle] = useState("");
   const [coursePrice, setCoursePrice] = useState(0);

@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // API controller function to manage Clerk user with database
-
+/*
 export const clerkWebHooks = async (req, res) => {
   try {
     const webhook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
@@ -62,6 +62,7 @@ export const clerkWebHooks = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+*/
 
 // stripe webhook
 const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);

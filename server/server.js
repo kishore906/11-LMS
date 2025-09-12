@@ -22,14 +22,7 @@ await connectDB();
 await connectCloudinary();
 
 // // Use middleware to parse incoming JSON requests
-app.use(
-  express.json({
-    limit: "10mb",
-    verify: (req, res, buf) => {
-      req.rawBody = buf.toString();
-    },
-  })
-);
+app.use(express.json());
 
 // Middleware to parse cookies
 app.use(cookieParser());
@@ -61,3 +54,13 @@ app.post(
   express.raw({ type: "application/json*" }),
   stripeWebhook
 );
+
+/*
+Meaning of express.raw({ type: "application/json*" }):
+
+1. express.raw() → tells Express to keep the request body as a Buffer (raw bytes).
+2. { type: "application/json*" } → applies this only to requests with a Content-Type header matching application/json (or any subtype, since *).
+
+In Short:
+express.raw({ type: "application/json*" }) = middleware that tells Express to leave Stripe’s webhook body untouched so the signature check works.
+*/

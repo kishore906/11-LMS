@@ -218,7 +218,7 @@ const CourseDetails = () => {
                             <div className="flex gap-2">
                               {lecture.isPreviewFree && (
                                 <p
-                                  className="text-blue-500 cursor-pointer"
+                                  className="text-blue-500 cursor-pointer ms-2"
                                   onClick={() =>
                                     setPlayerData({
                                       videoId: lecture.lectureUrl

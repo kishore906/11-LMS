@@ -47,7 +47,7 @@ const CoursePlayer = () => {
   }, [enrolledCourses, getCourseData]);
 
   const markLectureAsCompleted = async (lectureId) => {
-    console.log(lectureId);
+    //console.log(lectureId);
     try {
       const response = await fetch(
         "http://localhost:5000/api/update-course-progress",
@@ -226,7 +226,9 @@ const CoursePlayer = () => {
           {playerData ? (
             <div>
               <YouTube
-                videoId={playerData.lectureUrl.split("/").pop()}
+                videoId={new URLSearchParams(
+                  playerData.lectureUrl.split("?")[1]
+                ).get("v")}
                 iframeClassName="w-full aspect-video"
               />
               <div className="flex justify-between items-center mt-1">

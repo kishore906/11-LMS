@@ -39,7 +39,7 @@ const Navbar = () => {
 
   return (
     <div
-      className={`flex items-center justify-between px-4 sm:px-10 md:px-14 lg:px-36 border-b border-gray-500 py-4 ${
+      className={`flex items-center justify-between px-4 sm:px-10 md:px-14 lg:px-36 border-b border-gray-200 py-4 ${
         isCourseListPage ? "bg-white" : "bg-cyan-100/70"
       }`}
     >
@@ -69,7 +69,7 @@ const Navbar = () => {
             onClick={() => navigate("/register")}
             className="bg-blue-600 text-white px-5 py-2 rounded-full"
           >
-            Create Account
+            Create Account / Login
           </button>
         )}
       </div>

@@ -111,7 +111,8 @@ const AddCourse = () => {
         discount: Number(discount),
         courseContent: chapters,
       };
-
+      console.log(courseData);
+      /*
       // creating form-data to send it to backend api
       const formData = new FormData();
       formData.append("courseData", JSON.stringify(courseData));
@@ -145,7 +146,7 @@ const AddCourse = () => {
         quillRef.current.root.innerHTML = "";
       } else {
         toast.error(data.error);
-      }
+      }*/
     } catch (err) {
       console.log(err);
       toast.error("Server error please try later!!");

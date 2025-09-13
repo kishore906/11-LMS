@@ -72,7 +72,7 @@ const login = async (req, res) => {
     // passing token in cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
@@ -270,10 +270,13 @@ const updateUserCourseProgress = async (req, res) => {
   try {
     const { _id } = req.user;
     const { courseId, lectureId } = req.body;
-    const progressData = await CourseProgress.findOne({ _id, courseId });
+    const progressData = await CourseProgress.findOne({
+      userId: _id,
+      courseId,
+    });
 
     if (progressData) {
-      console.log(progressData.lectureCompleted.includes(lectureId));
+      //console.log(progressData.lectureCompleted.includes(lectureId));
       if (progressData.lectureCompleted.includes(lectureId)) {
         return res
           .status(200)
@@ -290,7 +293,7 @@ const updateUserCourseProgress = async (req, res) => {
       });
     }
 
-    res.status(200).json({ success: true, message: "Progress updated !!" });
+    res.status(200).json({ success: true, message: "Progress updated!!" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

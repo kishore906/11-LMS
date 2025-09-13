@@ -37,13 +37,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions)); // Use the CORS middleware
 
-// port
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server is running on PORT ${PORT}`);
-});
-
 // Routes
 //app.post("/clerk", express.json(), clerkWebHooks);
 app.use("/api", userRoutes);
@@ -64,3 +57,10 @@ Meaning of express.raw({ type: "application/json*" }):
 In Short:
 express.raw({ type: "application/json*" }) = middleware that tells Express to leave Stripe’s webhook body untouched so the signature check works.
 */
+
+// port
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on PORT ${PORT}`);
+});
